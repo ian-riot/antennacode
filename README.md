@@ -8,3 +8,5 @@ This is a collection of scripts used to design:
 
 It make extensive use of the optimization toolbox and the antenna toolbox. 
 Some run times may be in excess of 24hrs on a Xeon server.
+
+The most relevant scripts are referenced from the wiki
