@@ -5,7 +5,7 @@ close all
 
 
 DO_5GHZ = 0
-DO_GENETIC_ALGORITHM = 0
+DO_GENETIC_ALGORITHM = 1
 USE_GRADIENTS = 0
 
 
@@ -32,24 +32,32 @@ f = flow*1e9:fstep*1e6:fhigh*1e9;
 
 
 %dielectric: FR4
-epsr = 4.2;
+% epsr = 4.2;
+epsr = 4.3;
 dissipation_factor = 0.008;
-h = 1.56; %mm
-h_m = h/1000; %m
+
+
 
 targetZ = 100;
 
 
-h = 1.6; %mm
+
 L2 = 26.13; %mm
 W2 = 33.15; %mm
 y02 = 2.74; %mm
 
+L2 = 27.36; %mm
+W2 = 38.25; %mm
+% y02 = 3.33; %mm
 
 % 5 GHz patch
 L5 = 11.7; %mm
 W5 = 13.2; %mm
 y05 = 0.335; %mm
+
+h = 1.465; %mm
+% h = 1.6; %mm
+h_m = h/1000; %m
 
 
 w2 = 2; % stripline multiplier
@@ -123,7 +131,7 @@ insetpatch = patchMicrostripInsetfed('Length',L_m,...
                                      'Height',h_m,...
                                      'Substrate',d,...
                                      'PatchCenterOffset',[0 0],...
-                                     'FeedOffset',[-L_m 0],...
+                                     'FeedOffset',[-L_m*2/3 0],...
                                      'StripLineWidth',w_m,...
                                      'NotchLength',y0,...
                                      'GroundPlaneLength',L_m*2,...
@@ -142,15 +150,22 @@ vals_opt(3) = y0;
 
 vals_opt_min(1) = L_m-L_m/5;
 vals_opt_min(2) = W_m-W_m/5;
-vals_opt_min(3) = 1e-4;
-% vals_opt_min(5) = w_m-1e-4;
-%vals_opt_min(4) = (w_m-1e-4)*2;
+vals_opt_min(3) = 1e-3;
+
 
 vals_opt_max(1) = L_m+L_m/5;
 vals_opt_max(2) = W_m+W_m/5;
-vals_opt_max(3) = L_m-L_m/4;
-% vals_opt_max(5) = w_m+1e-4;
-%vals_opt_max(4) = (w_m+1e-4)*2;
+vals_opt_max(3) = 7e-3;
+
+vals_opt_min(1) = 20e-3;
+vals_opt_min(2) = 20e-3;
+vals_opt_min(3) = 1e-3;
+
+
+vals_opt_max(1) = 40e-3;
+vals_opt_max(2) = 40e-3;
+vals_opt_max(3) = 7e-3;
+
 
 % vals_opt = [9.9660   17.6272    5.6265    4.8679    2.5989]./1e3;
 % vals_opt = [9.9660   17.6272    y0*1e3    4.8679    2.5989]./1e3;
@@ -162,7 +177,7 @@ FitnessFunction = @(vals_opt) optvswr(insetpatch,vals_opt,f0_hz,Z0);
 
 options = optimset('Display','iter','TolFun',0.1);
 options3 = optimset('Display','iter','TolFun',0.1,'UseParallel', true);
-options2 = optimoptions(@ga,'Display','iter','UseParallel', true);
+options2 = optimoptions(@ga,'Display','iter','UseParallel', true,'FunctionTolerance',1e-2,'MaxTime',60*60);
 if DO_GENETIC_ALGORITHM
     vals_opt = ga(@(vals_opt) optvswr(insetpatch,vals_opt,f0_hz,Z0),length(vals_opt),[],[],[],[],vals_opt_min,vals_opt_max,[],options2);
     vals_opt = fminsearch(@(vals_opt) FitnessFunction(vals_opt),vals_opt,options);
@@ -195,15 +210,15 @@ vswr(insetpatch,f,Z0)
 
 
 function output = optvswr(patch,vals_opt,freq,Z0)
-    patch.Length = max(1e-5,vals_opt(1));
-    patch.Width = max(1e-5,vals_opt(2));
-    patch.NotchLength = max(1e-5,vals_opt(3));
-    patch.NotchLength = min(patch.Length,patch.NotchLength);
-    
+
+
     patch.Length = vals_opt(1);
     patch.Width = vals_opt(2);
     patch.NotchLength = vals_opt(3);
-   
+    patch.GroundPlaneLength = vals_opt(1)*2;
+    patch.GroundPlaneWidth = vals_opt(2)*2;
+    patch.FeedOffset = [-vals_opt(1)*2/3 0];
+    patch.PatchCenterOffset = [0 0];
     
     %patch.NotchWidth = vals_opt(4);
 %     patch.StripLineWidth = vals_opt(5);
@@ -217,9 +232,10 @@ function output = optvswr(patch,vals_opt,freq,Z0)
     txt = {txt1,txt2,txt3};
     annotation(h,'textbox', [0.05, 0.9, 0.1, 0.1], 'String',txt,'FitBoxToText','on');
     pause(0.1);
-    
+    disp(['L:' num2str(vals_opt(1)*1000) ' W: ' num2str(vals_opt(2)*1000) ' y0: ' num2str(vals_opt(3)*1000) ' = ?']);
     output = vswr(patch,freq,Z0);
     disp(['L:' num2str(vals_opt(1)*1000) ' W: ' num2str(vals_opt(2)*1000) ' y0: ' num2str(vals_opt(3)*1000) ' = ' num2str(output) ]);
+    
 end
 
 

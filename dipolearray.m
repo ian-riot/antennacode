@@ -4,8 +4,8 @@ clear all
 close all
 
 
-DO_5GHZ = 1
-DO_VERTICAL = 1
+DO_5GHZ = 0
+DO_VERTICAL = 0
 
 
 c = 299792458;
@@ -90,9 +90,11 @@ f = flow*1e9:fstep*1e6:fhigh*1e9;
 if DO_VERTICAL
     bladeDipole = dipoleBlade('Length', L, 'width', W, 'TaperLength', Ld,...
                            'FeedWidth', fw,'FeedGap', g,'Tilt', 90,'TiltAxis',[0 1 0]);
+    norows = 4;
 else
     bladeDipole = dipoleBlade('Length', L, 'width', W, 'TaperLength', Ld,...
                            'FeedWidth', fw,'FeedGap', g,'Tilt',[90 90],'TiltAxis',[0 1 0; 0 0 1]);
+    norows = 4;
 end
                        
 % b = bowtieTriangular('Length',0.05)

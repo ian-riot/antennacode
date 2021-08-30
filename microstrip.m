@@ -4,6 +4,7 @@ clear all
 
 targetZ = 50
 
+
 DO_5GHZ = 0
 
 
@@ -31,10 +32,10 @@ f = flow*1e9:fstep*1e6:fhigh*1e9;
 
 
 %dielectric: FR4
-epsr = 4.2;
+epsr = 4.3;
 Er = epsr;
 dissipation_factor = 0.018;
-h = 1.6*2; %mm
+h = 1.465; %mm
 d = h;
 h_m = h/1000; %m
 cu_h = 35e-6;
